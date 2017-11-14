@@ -1,0 +1,85 @@
+PROCEDURES
+////////////////////////////// STORED PROCEDURE FOR PAYMENT WITH TRANSACTIONS/////////////////////
+DELIMITER $$
+CREATE PROCEDURE usp_payments1(IN idd INT ,IN order_idd INT,IN payment_typed varchar(20),IN discount_coupond decimal,IN payment_dated DATE, IN payment_statusd varchar(20),IN createdd datetime,IN updatedd timestamp, IN checkout_costd decimal(10,2))
+BEGIN  
+start transaction;
+INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(idd,order_idd,payment_typed,discount_coupond,payment_dated,payment_statusd,createdd,updatedd,checkout_costd); 
+
+commit;
+
+END$$
+///////////////// FOR COPYING DATA FROM CARTS TO ORDER_HISTORY//////////////////////////////////
+DELIMITER $$
+CREATE PROCEDURE copytbl()
+BEGIN
+    INSERT INTO order_history
+    SELECT * FROM carts;
+    TRUNCATE TABLE carts;	
+END$$
+
+////////////// FOR TOTAL PRICE IN ORDERS///////////////////////////////
+DELIMITER $$
+CREATE PROCEDURE final_cost()
+BEGIN
+DECLARE itr INT DEFAULT 0;
+DECLARE new_var INTEGER;
+DECLARE updated_cost INTEGER;
+SET itr = 1;
+SET new_var = (SELECT COUNT(*) FROM orders);
+WHILE(itr <=  new_var) DO
+    select sum((carts.product_quantity * variants.price)) into updated_cost from carts,variants where carts.variant_id = variants.id AND carts.user_id = itr;
+    UPDATE orders SET orders.final_cost = updated_cost where orders.user_id = itr;
+    SET itr = itr + 1;
+END WHILE;
+END;
+$$
+
+////////////////////FOR FINAL CHECKOUT PRICE IN PAYMENTS///////////////
+DELIMITER $$
+CREATE PROCEDURE final_checkout_cost()
+BEGIN  
+
+DECLARE calculated_amount DECIMAL DEFAULT 0;
+DECLARE itr1 DECIMAL DEFAULT 0;
+DECLARE itr2 DECIMAL DEFAULT 0;
+DECLARE validate_cursor INT DEFAULT 0;
+DECLARE itr INT DEFAULT 1;
+DECLARE cursor1 CURSOR FOR
+SELECT final_cost from orders;
+DECLARE cursor2 CURSOR FOR
+SELECT discount_coupon from payments;
+
+DECLARE CONTINUE HANDLER
+       FOR NOT FOUND SET validate_cursor = 1;
+
+
+   
+OPEN cursor1;
+OPEN cursor2;
+
+WHILE(itr< (SELECT COUNT(*) FROM payments)) DO
+   FETCH cursor1 INTO itr1;
+   FETCH cursor2 INTO itr2;
+   
+   SET calculated_amount = itr1 -itr2;
+   
+   UPDATE payments SET checkout_cost = calculated_amount where payments.order_id = itr;
+   SET itr= itr+1;
+   
+END WHILE;
+SELECT calculated_amount;
+CLOSE cursor1;
+CLOSE cursor2;    
+   
+   
+   
+END$$
+
+///////////////////////// db_view/////////////////////
+CREATE VIEW paymentview AS SELECT o.id, o.final_cost, o.order_date, p.discount_coupon, p.payment_type, p.payment_status FROM orders o, payments p WHERE o.id=p.order_id;
+
+
+///////////////////MONTHLY-REPORT//////////////
+CREATE monthly_report AS SELECT o.id,o.order_date,p.product_name,v.price,pa.checkout_price,u.username,u.email FROM orders o, products p, variants v, payments pa, users u, order_history oh WHERE oh.user_id=u.id AND oh.variant_id=v.id AND oh.product_id=p.id AND oh.order_id=o.id AND oh.order_id=pa.order_id;
+
