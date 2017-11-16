@@ -8,12 +8,15 @@ PROCEDURES
 
 
 DELIMITER $$
-CREATE PROCEDURE usp_payments2(IN payment_typed varchar(20),IN payment_statusd varchar(20),IN userr_id INT)
+CREATE PROCEDURE usp_payments3(IN payment_typed varchar(20),IN payment_statusd varchar(20),IN idd INT)
 BEGIN  
 DECLARE f DECIMAL DEFAULT 0;
 DECLARE d DECIMAL DEFAULT 10;
 DECLARE calculated_amount DECIMAL DEFAULT 0;
 DECLARE new_cost DECIMAL DEFAULT 0;
+DECLARE new_var INTEGER DEFAULT 0;
+DECLARE new_var1 INTEGER DEFAULT 0;
+DECLARE final INTEGER DEFAULT 0;
 DECLARE roll_back INTEGER DEFAULT 0;
 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET roll_back = 1;
 
@@ -22,32 +25,35 @@ start transaction;
 
 
 
-select sum((carts.product_quantity * variants.price)) into new_cost from carts,variants where carts.variant_id = variants.id and carts.user_id = userr_id;
+select sum((carts.product_quantity * variants.price)) into new_cost from carts,variants where carts.variant_id = variants.id and carts.user_id = idd;
 
-UPDATE orders SET final_cost = new_cost where orders.user_id = userr_id;
+UPDATE orders SET final_cost = new_cost where orders.user_id = idd;
 
-select final_cost into f from orders o ,carts c where o.user_id = userr_id;
-
-
+select final_cost into f from orders o ,carts c where o.user_id = idd;
 
 
-SELECT discount_coupon into d from payments p where p.id =  userr_id;
+
+
+SELECT discount_coupon into d from payments p where p.id =  idd;
 SELECT new_cost,d;
-SET calculated_amount = new_cost - d;
+SET new_var = select stock from variants where variants.id=idd;
+SET new_var1= select product_quantity from carts where carts.id=idd;
+SET final=new_var - new_var1;
 
-if calculated_amount<0 then
+
+if final<0 then
 set roll_back =1;
 end if;
 
-UPDATE payments SET checkout_cost = calculated_amount where payments.id = userr_id;
+UPDATE payments SET checkout_cost = calculated_amount where payments.id = idd;
 
 
 
 
-INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(userr_id,userr_id,payment_typed,10,CURDate(),payment_statusd,CURDate(),CURDate(),calculated_amount); 
+INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(idd,idd,payment_typed,10,CURDate(),payment_statusd,CURDate(),CURDate(),calculated_amount); 
 
 
-update variants inner join carts on variants.id=carts.variant_id set variants.stock=variants.stock - carts.product_quantity where variants.id=userr_id;
+update variants inner join carts on variants.id=carts.variant_id set variants.stock=variants.stock - carts.product_quantity where variants.id=idd;
 INSERT INTO order_history
 SELECT * FROM carts;
 TRUNCATE TABLE carts;
