@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.5.58, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: e_commerce
+-- Host: localhost    Database: mytest
 -- ------------------------------------------------------
 -- Server version	5.5.58-0ubuntu0.14.04.1
 
@@ -41,7 +41,6 @@ CREATE TABLE `carts` (
 
 LOCK TABLES `carts` WRITE;
 /*!40000 ALTER TABLE `carts` DISABLE KEYS */;
-INSERT INTO `carts` VALUES (1,1,1,2,1,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(1,6,2,1,1,'2017-11-13 00:00:00','2017-11-14 12:17:59'),(1,5,1,2,1,'2017-11-14 00:00:00','2017-11-14 12:17:59'),(2,2,2,3,4,'2017-11-14 00:00:00','2017-11-13 18:30:00');
 /*!40000 ALTER TABLE `carts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,6 +68,7 @@ CREATE TABLE `order_history` (
 
 LOCK TABLES `order_history` WRITE;
 /*!40000 ALTER TABLE `order_history` DISABLE KEYS */;
+INSERT INTO `order_history` VALUES (1,1,1,2,1,'2017-11-16 17:25:55','2017-11-16 11:55:55'),(1,1,1,2,1,'2017-11-16 17:25:55','2017-11-16 11:55:55');
 /*!40000 ALTER TABLE `order_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -98,7 +98,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,1,'2017-11-14','Placed',260.00,'2017-11-14','2017-11-14 00:00:00','2017-11-14 13:45:30'),(2,2,'2017-11-14','Placed',175.00,'2017-11-14','2017-11-14 00:00:00','2017-11-14 13:45:30');
+INSERT INTO `orders` VALUES (1,1,'2017-11-14','Placed',100.00,'2017-11-14','2017-11-14 00:00:00','2017-11-16 12:14:46');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -129,7 +129,7 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (1,1,'cash',10,'2017-11-14','placed','2017-11-14 00:00:00','2017-11-14 15:03:58',250.00),(2,2,'cash',10,'2017-11-14','placed','2017-11-14 00:00:00','2017-11-14 15:03:58',165.00),(3,3,'cash',10,'2017-11-14','placed','2017-11-14 00:00:00','2017-11-14 15:03:58',165.00),(4,4,'credit',15,'2017-11-14','placed','2017-11-14 00:00:00','2017-11-14 14:52:54',175.00);
+INSERT INTO `payments` VALUES (1,1,'credit',10,'2017-11-16','placed','2017-11-16 00:00:00','2017-11-16 12:14:46',90.00);
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -187,7 +187,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'buyer','madan@webonise.com','root','madan','8446831141','pune','2017-12-11 18:56:17','2017-12-11 13:27:44'),(2,'buyer','shivani@webonise.com','root','shivani','7845831141','mumbai','2017-12-11 17:56:01','2017-12-11 13:27:44'),(3,'buyer','kamal@webonise.com','root','kamal','5478431141','uttarpradesh','2017-12-11 16:45:01','2017-12-11 12:15:21'),(4,'inventory_manager','owais@webonise.com','root','owais','5478412457','nagpur','2017-12-11 13:25:01','2017-12-11 13:10:21'),(5,'inventory_manager','akansha@webonise.com','root','akansha','7845112457','kanpur','2017-12-11 11:25:01','2017-12-11 07:42:21');
+INSERT INTO `users` VALUES (1,'inventory_manager','owais@webonise.com','root','owais','5478412457','nagpur','2017-12-11 13:25:01','2017-12-11 13:10:21'),(2,'buyer','antrx@webonise.com','roott','antrx','1234567890','pune','2017-11-16 17:23:46','2017-11-16 11:53:46');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -216,7 +216,7 @@ CREATE TABLE `variants` (
 
 LOCK TABLES `variants` WRITE;
 /*!40000 ALTER TABLE `variants` DISABLE KEYS */;
-INSERT INTO `variants` VALUES (1,1,'BLACK',3,50.24,'2017-11-13 00:00:00','2017-11-13 14:08:00'),(2,2,'RED',4,58.32,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(3,3,'BROWN',8,75.32,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(4,4,'BLUE',5,68.32,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(5,1,'GREY',5,52.25,'2017-11-14 00:00:00','2017-11-13 18:30:00'),(6,2,'BLACK',4,55.25,'2017-11-14 00:00:00','2017-11-13 18:30:00');
+INSERT INTO `variants` VALUES (1,1,'BLACK',1,50.24,'2017-11-13 00:00:00','2017-11-16 12:57:06'),(2,2,'RED',1,58.32,'2017-11-13 00:00:00','2017-11-16 09:57:00'),(3,3,'BROWN',8,75.32,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(4,4,'BLUE',5,68.32,'2017-11-13 00:00:00','2017-11-12 18:30:00'),(5,1,'GREY',3,52.25,'2017-11-14 00:00:00','2017-11-16 09:57:00'),(6,2,'BLACK',3,55.25,'2017-11-14 00:00:00','2017-11-16 09:57:00');
 /*!40000 ALTER TABLE `variants` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -229,4 +229,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-14 20:40:27
+-- Dump completed on 2017-11-16 18:29:23

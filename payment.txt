@@ -1,79 +1,68 @@
 PROCEDURES
-////////////////////////////// STORED PROCEDURE FOR PAYMENT WITH TRANSACTIONS/////////////////////
+
+
+
+
+////////////////////// To store in payment
+
+
+
 DELIMITER $$
-CREATE PROCEDURE usp_payments1(IN idd INT ,IN order_idd INT,IN payment_typed varchar(20),IN discount_coupond decimal,IN payment_dated DATE, IN payment_statusd varchar(20),IN createdd datetime,IN updatedd timestamp, IN checkout_costd decimal(10,2))
+CREATE PROCEDURE usp_payments2(IN payment_typed varchar(20),IN payment_statusd varchar(20),IN userr_id INT)
 BEGIN  
-start transaction;
-INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(idd,order_idd,payment_typed,discount_coupond,payment_dated,payment_statusd,createdd,updatedd,checkout_costd); 
-
-commit;
-
-END$$
-///////////////// FOR COPYING DATA FROM CARTS TO ORDER_HISTORY//////////////////////////////////
-DELIMITER $$
-CREATE PROCEDURE copytbl()
-BEGIN
-    INSERT INTO order_history
-    SELECT * FROM carts;
-    TRUNCATE TABLE carts;	
-END$$
-
-////////////// FOR TOTAL PRICE IN ORDERS///////////////////////////////
-DELIMITER $$
-CREATE PROCEDURE final_cost()
-BEGIN
-DECLARE itr INT DEFAULT 0;
-DECLARE new_var INTEGER;
-DECLARE updated_cost INTEGER;
-SET itr = 1;
-SET new_var = (SELECT COUNT(*) FROM orders);
-WHILE(itr <=  new_var) DO
-    select sum((carts.product_quantity * variants.price)) into updated_cost from carts,variants where carts.variant_id = variants.id AND carts.user_id = itr;
-    UPDATE orders SET orders.final_cost = updated_cost where orders.user_id = itr;
-    SET itr = itr + 1;
-END WHILE;
-END;
-$$
-
-////////////////////FOR FINAL CHECKOUT PRICE IN PAYMENTS///////////////
-DELIMITER $$
-CREATE PROCEDURE final_checkout_cost()
-BEGIN  
-
+DECLARE f DECIMAL DEFAULT 0;
+DECLARE d DECIMAL DEFAULT 10;
 DECLARE calculated_amount DECIMAL DEFAULT 0;
-DECLARE itr1 DECIMAL DEFAULT 0;
-DECLARE itr2 DECIMAL DEFAULT 0;
-DECLARE validate_cursor INT DEFAULT 0;
-DECLARE itr INT DEFAULT 1;
-DECLARE cursor1 CURSOR FOR
-SELECT final_cost from orders;
-DECLARE cursor2 CURSOR FOR
-SELECT discount_coupon from payments;
+DECLARE new_cost DECIMAL DEFAULT 0;
+DECLARE roll_back INTEGER DEFAULT 0;
+DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET roll_back = 1;
 
-DECLARE CONTINUE HANDLER
-       FOR NOT FOUND SET validate_cursor = 1;
+start transaction;
 
 
-   
-OPEN cursor1;
-OPEN cursor2;
 
-WHILE(itr< (SELECT COUNT(*) FROM payments)) DO
-   FETCH cursor1 INTO itr1;
-   FETCH cursor2 INTO itr2;
-   
-   SET calculated_amount = itr1 -itr2;
-   
-   UPDATE payments SET checkout_cost = calculated_amount where payments.order_id = itr;
-   SET itr= itr+1;
-   
-END WHILE;
-SELECT calculated_amount;
-CLOSE cursor1;
-CLOSE cursor2;    
-   
-   
-   
+
+select sum((carts.product_quantity * variants.price)) into new_cost from carts,variants where carts.variant_id = variants.id and carts.user_id = userr_id;
+
+UPDATE orders SET final_cost = new_cost where orders.user_id = userr_id;
+
+select final_cost into f from orders o ,carts c where o.user_id = userr_id;
+
+
+
+
+SELECT discount_coupon into d from payments p where p.id =  userr_id;
+SELECT new_cost,d;
+SET calculated_amount = new_cost - d;
+
+if calculated_amount<0 then
+set roll_back =1;
+end if;
+
+UPDATE payments SET checkout_cost = calculated_amount where payments.id = userr_id;
+
+
+
+
+INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(userr_id,userr_id,payment_typed,10,CURDate(),payment_statusd,CURDate(),CURDate(),calculated_amount); 
+
+
+update variants inner join carts on variants.id=carts.variant_id set variants.stock=variants.stock - carts.product_quantity where variants.id=userr_id;
+INSERT INTO order_history
+SELECT * FROM carts;
+TRUNCATE TABLE carts;
+
+if roll_back then
+   select roll_back;
+   rollback;
+ 
+else
+   select roll_back;    
+   commit;
+end if;
+
+
+
 END$$
 
 ///////////////////////// db_view/////////////////////
