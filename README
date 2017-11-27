@@ -1,0 +1,14 @@
+RDBMS Assignment
+assmt.sql
+This file has a database named 'ecommerce'. With tables
+User- Havb user details
+Product- Have product details
+Color- Have multiple color of product, their price and quantity
+Order- Order details having linked with User and Colors
+Payment - Have Discount and final checkout price
+
+ER.pdf
+ER diagram for the database
+
+
+Common Schema

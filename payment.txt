@@ -1,0 +1,81 @@
+PROCEDURES
+
+
+
+
+////////////////////// To store in payment
+
+
+
+DELIMITER $$
+CREATE PROCEDURE usp_payments3(IN payment_typed varchar(20),IN payment_statusd varchar(20),IN idd INT)
+BEGIN  
+DECLARE f DECIMAL DEFAULT 0;
+DECLARE d DECIMAL DEFAULT 10;
+DECLARE calculated_amount DECIMAL DEFAULT 0;
+DECLARE new_cost DECIMAL DEFAULT 0;
+DECLARE new_var INTEGER DEFAULT 0;
+DECLARE new_var1 INTEGER DEFAULT 0;
+DECLARE final INTEGER DEFAULT 0;
+DECLARE roll_back INTEGER DEFAULT 0;
+DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET roll_back = 1;
+
+start transaction;
+
+
+
+
+select sum((carts.product_quantity * variants.price)) into new_cost from carts,variants where carts.variant_id = variants.id and carts.user_id = idd;
+
+UPDATE orders SET final_cost = new_cost where orders.user_id = idd;
+
+select final_cost into f from orders o ,carts c where o.user_id = idd;
+
+
+
+
+SELECT discount_coupon into d from payments p where p.id =  idd;
+SET calculated_amount= f-d;
+SELECT new_cost,d;
+SET new_var = select stock from variants where variants.id=idd;
+SET new_var1= select product_quantity from carts where carts.id=idd;
+SET final=new_var - new_var1;
+
+
+if final<0 then
+set roll_back =1;
+end if;
+
+UPDATE payments SET checkout_cost = calculated_amount where payments.id = idd;
+
+
+
+
+INSERT INTO payments(id,order_id,payment_type,discount_coupon,payment_date,payment_status,created,updated,checkout_cost) VALUES(idd,idd,payment_typed,10,CURDate(),payment_statusd,CURDate(),CURDate(),calculated_amount); 
+
+
+update variants inner join carts on variants.id=carts.variant_id set variants.stock=variants.stock - carts.product_quantity where variants.id=idd;
+INSERT INTO order_history
+SELECT * FROM carts;
+TRUNCATE TABLE carts;
+
+if roll_back then
+   select roll_back;
+   rollback;
+ 
+else
+   select roll_back;    
+   commit;
+end if;
+
+
+
+END$$
+
+///////////////////////// db_view/////////////////////
+CREATE VIEW paymentview AS SELECT o.id, o.final_cost, o.order_date, p.discount_coupon, p.payment_type, p.payment_status FROM orders o, payments p WHERE o.id=p.order_id;
+
+
+///////////////////MONTHLY-REPORT//////////////
+CREATE monthly_report AS SELECT o.id,o.order_date,p.product_name,v.price,pa.checkout_price,u.username,u.email FROM orders o, products p, variants v, payments pa, users u, order_history oh WHERE oh.user_id=u.id AND oh.variant_id=v.id AND oh.product_id=p.id AND oh.order_id=o.id AND oh.order_id=pa.order_id;
+
