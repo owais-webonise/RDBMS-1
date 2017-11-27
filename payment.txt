@@ -35,6 +35,7 @@ select final_cost into f from orders o ,carts c where o.user_id = idd;
 
 
 SELECT discount_coupon into d from payments p where p.id =  idd;
+SET calculated_amount= f-d;
 SELECT new_cost,d;
 SET new_var = select stock from variants where variants.id=idd;
 SET new_var1= select product_quantity from carts where carts.id=idd;
